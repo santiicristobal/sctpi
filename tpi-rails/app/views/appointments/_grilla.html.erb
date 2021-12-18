@@ -1,0 +1,22 @@
+<%= form_with(model: nil, url:  professionals_grilla_day_path) do |form| %>
+    <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+    <% if professional.nil? %>
+    <%= form.hidden_field :professional_id, :value => professional %>
+    <% else %>
+    <div class="field">
+    <%= form.hidden_field :professional_id, :value => professional.id %>
+    </div> 
+    <% end %> 
+    <div class="field">
+        <%= form.label :date, "Fecha de la grilla" %>
+        <%= form.date_select :date, :start_year => DateTime.now.year, :end_year => DateTime.now.year + 10 %>
+    </div>
+
+    <div class="actions">
+        <%= form.submit "grilla diaria", data: { disable_with: false } %>
+    </div>
+
+    <div class="actions">
+        <%= form.submit "grilla semanal", data: { disable_with: false }, formaction: professionals_grilla_week_path  %>
+    </div>
+<% end %>

@@ -1,0 +1,85 @@
+<div>
+    <% if professional.nil? %>
+    <h2>
+        turnos de la semana <%="#{date.strftime("%F")}" %>
+    </h2>
+    <% else %>
+    <h2>
+        turnos de la semana <%="#{date.strftime("%F")} del profesional #{professional.surname} #{professional.name}"%>
+    </h2>
+    <% end %>
+    <table>
+        <thead>
+            <tr>
+                <th>
+                    hora
+                </th>
+                <% if professional.nil? %>
+                <th>
+                    profesional
+                </th>
+                <% end %>
+                <th>
+                    domingo
+                </th>
+                <th>
+                    lunes               
+                </th>
+                <th>
+                    martes
+                </th>
+                <th>
+                    miercoles
+                </th>
+                <th>
+                    jueves
+                </th>
+                <th>
+                    viernes
+                </th>
+                <th>
+                    sabado
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <% new_date= date %>
+            <% while !(new_date.hour == 18) || !(new_date.min == 30)
+                 professionals.each do | p | %>
+                    <tr>
+                        <td>
+                            <%= new_date.strftime("%R") %>
+                        </td>
+                        <% if professional.nil? %>
+                            <td>
+                                <%= "#{p.surname} #{p.name}" %>
+                            </td>
+                        <% end %>
+                        <td>
+                            <%= p.grilla(new_date) %>
+                        </td>
+                        <td>
+                            <%= p.grilla(new_date+1) %>
+                        </td>
+                        <td>
+                            <%= p.grilla(new_date+2) %>
+                        </td>
+                        <td>
+                            <%= p.grilla(new_date+3) %>
+                        </td>
+                        <td>
+                            <%= p.grilla(new_date+4) %>
+                        </td>
+                        <td>
+                            <%= p.grilla(new_date+5) %>
+                        </td>
+                        <td>
+                            <%= p.grilla(new_date+6) %>
+                        </td>
+                    </tr>
+                <% end 
+                new_date= new_date + (30/1440.0) %>
+            <% end %>
+        </tbody>
+    </table>
+</div>

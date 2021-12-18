@@ -1,0 +1,60 @@
+<div>
+    <% if professional.nil? %>
+    <h2>
+        turnos del dia <%="#{date.strftime("%F")}" %>
+    </h2>
+    <% else %>
+    <h2>
+        turnos del dia <%="#{date.strftime("%F")} del profesional #{professional.surname} #{professional.name}"%>
+    </h2>
+    <% end %>
+    <table>
+        <thead>
+            <tr>
+                <th>
+                    hora
+                </th>
+                <% if professional.nil? %>
+                <th>
+                    profesional
+                </th>
+                <% end %>
+                <th>
+                    nombre del paciente
+                </th>
+                <th>
+                    apellido del paciente                
+                </th>
+                <th>
+                    telefono
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <%appointments.each do | appointment |%>
+                <tr>
+
+                    <td>
+                        <%= appointment.date.strftime("%R") %>
+                    </td>
+                    <% if professional.nil? %>
+                        <td>
+                            <%= "#{appointment.professional.surname} #{appointment.professional.name}" %>
+                        </td>
+                    <% end %>
+                    <td>
+                        <%= appointment.name %>                        
+                    </td>
+
+                    <td>
+                        <%= appointment.surname %>                        
+                    </td>
+
+                    <td>
+                        <%= appointment.phone %>                        
+                    </td>
+                </tr>
+            <%end%>    
+        </tbody>
+    </table>
+</div>
