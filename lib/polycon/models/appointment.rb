@@ -125,7 +125,7 @@ module Polycon
                 ERB
                 erb= ERB.new(template)
                 output= erb.result_with_hash(appointments:appo, date:date)
-                File.write(Dir.home+"/grilladay.html", output)
+                File.write(Dir.home+"/day_appointments.html", output)
             end
 
             def self.appointmentDay(date, professional)

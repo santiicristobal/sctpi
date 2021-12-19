@@ -1,6 +1,6 @@
 class AppointmentsController < ApplicationController
   before_action :set_appointment, only: %i[ show edit update destroy ]
-  before_action :set_professional, only: %i[ show edit update destroy index new create ]
+  before_action :set_professional, only: %i[ show edit update destroy destroy_all index new create ]
   before_action :week_calendar, only: %i[ grilla_week ]
   # GET /appointments or /appointments.json
   def index
@@ -53,6 +53,14 @@ class AppointmentsController < ApplicationController
     @appointment.destroy
     respond_to do |format|
       format.html { redirect_to professional_appointments_path(@professional.id), notice: "Appointment was successfully destroyed." }
+      format.json { head :no_content }
+    end
+  end
+
+  def destroy_all
+    Appointment.where(professional_id: @professional.id).destroy_all
+    respond_to do |format|
+      format.html { redirect_to professional_appointments_path(@professional.id), notice: "Los turnos han sido cancelado." }
       format.json { head :no_content }
     end
   end
