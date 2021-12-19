@@ -21,7 +21,9 @@ module Polycon
       prefix.register 'show', Appointments::Show
       prefix.register 'cancel', Appointments::Cancel
       prefix.register 'cancel-all', Appointments::CancelAll
-      prefix.register 'commandsgrilla', Appointments::Commandsgrilla
+      prefix.register 'grilladiaria', Appointments::GrillaDiaria
+      prefix.register 'grillasemanal', Appointments::GrillaSemanal
+
     end
 
     register 'version', Version, aliases: ['v', '-v', '--version']

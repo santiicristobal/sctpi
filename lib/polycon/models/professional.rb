@@ -1,32 +1,41 @@
 #require "./lib/polycon/helper/path"
+require "./lib/polycon/models/appointment"
 module Polycon
     module Models
         class Professional
+            def initialize(name)
+                @professional=name
+            end
+
+            def name
+                @professional
+            end
+
             def self.polycon_exist?
                 Dir.exists?(Dir.home+"/.polycon")
             end
 
-            def professional_rute(professional)
+            def self.professional_rute(professional)
                 Dir.home+"/.polycon/#{professional.gsub(" ", "_")}"
             end
 
-            def professional_exist?(professional)
-                Dir.exists?(self.professional_rute(professional))
+            def self.professional_exist?(professional)
+                Dir.exists?(Professional.professional_rute(professional))
             end
 
-            def create(professional)
-                Dir.mkdir(self.professional_rute(professional))
+            def create
+                Dir.mkdir(Professional.professional_rute(@professional))
             end
 
-            def delete(professional)
-                Dir.delete(self.professional_rute(professional))
+            def delete
+                Dir.delete(Professional.professional_rute(@professional))
             end
 
-            def rename(old_name, new_name)
-                File.rename(self.professional_rute(old_name),self.professional_rute(new_name))
+            def self.rename(old_name, new_name)
+                File.rename(Professional.professional_rute(old_name),Professional.professional_rute(new_name))
             end
 
-            def list
+            def self.list
                 Dir.foreach((Dir.home) +"/.polycon").map {|p| 
                 if !File.directory? p
                     p.gsub("_"," ") 
@@ -35,6 +44,25 @@ module Polycon
 
             def self.listProfessional
                 Dir.foreach((Dir.home) +"/.polycon").select {|p| !File.directory? p}
+            end
+
+            def data(date)
+                appointment= Appointment.new(date, @professional)
+                if (appointment.appointment_exist?(date, @professional))
+                    "#{appointment.data_of_patient}"
+                else
+                    " Sin turno "
+                end
+            end
+
+            def self.appointments_week?(professional, sunday)
+                range = sunday..(sunday + 6)
+                array = Professional.appointments(professional).select {|appointment| range.include?(DateTime.parse(appointment))}
+                (array.size == 0)
+            end
+
+            def self.appointments(professional)
+                Appointment.list(professional)
             end
         end
     end

@@ -31,7 +31,7 @@ module Polycon
             end
 
             def appointment_rute (date, professional)
-                Professional.new.professional_rute(professional)+"/#{date.gsub(" ", "_")}.paf"
+                Professional.professional_rute(professional)+"/#{date.gsub(" ", "_")}.paf"
             end
 
             def appointment_exist?(date, professional)
@@ -43,7 +43,7 @@ module Polycon
             end
 
             def self.appointment_rute (date, professional)
-                Professional.new.professional_rute(professional)+"/#{date.gsub(" ", "_")}.paf"
+                Professional.professional_rute(professional)+"/#{date.gsub(" ", "_")}.paf"
             end
 
             def create (name, surname, phone, notes)
@@ -63,11 +63,11 @@ module Polycon
             end
 
             def self.cancelAll (professional)
-                FileUtils.rm_rf(Dir.glob("#{Professional.new.professional_rute(professional)}/*"))
+                FileUtils.rm_rf(Dir.glob("#{Professional.professional_rute(professional)}/*"))
             end
 
             def self.list (professional)
-                Dir.foreach(Professional.new.professional_rute(professional)).map {|p| 
+                Dir.foreach(Professional.professional_rute(professional)).map {|p| 
                     if !File.directory? p 
                         DateTime.parse(p).strftime("%F %R")
                     end}.compact
@@ -108,13 +108,15 @@ module Polycon
                     <h1 align="center"> <%=DateTime.parse(date).strftime("%F")%> </h1>
                     <table align="center" border=1>
                         <tr>
-                            <th> Professional </th>
-                            <th> hour </th>
+                            <th> Profesional </th>
+                            <th> Hora </th>
+                            <th> Paciente </th>
                         </tr>
                         <% appointments.each do |appointment| %>
                             <tr>
                                 <td> <%= appointment.professional.gsub("_", " ") %> </td>
                                 <td> <%= DateTime.parse(appointment.date).strftime("%R") %> </td>
+                                <td> <%= appointment.data_of_patient %> </td>
                             </tr>
                         <% end %>
                     </table>
@@ -141,13 +143,96 @@ module Polycon
             end
 
             def self.appoDay(date, professional)
-                extend Rute
-                l=Dir.foreach(self.professional_rute(professional)).select {|p| !File.directory? p}
+                l=Dir.foreach(Professional.professional_rute(professional)).select {|p| !File.directory? p}
                 l.map {|p| 
                 if (!File.directory? p) && (DateTime.parse(p).strftime("%F")==DateTime.parse(date).strftime("%F"))
                     Appointment.new(p, professional)
                 end
                 }.compact
+            end
+
+            def self.htmlweek (date, professional)
+                sunday = Appointment.sunday(date)
+                professionals= Appointment.professionalsWeek(professional, sunday)
+                templete = <<-ERB
+                    <head>
+                    </head>
+                    <body>
+                    <h1 align="center"> Appointments <%= sunday.strftime("%F") %> to <%= (sunday + 6).strftime("%F") %> </h1>
+                    <br></br>
+                    <table align="center" border=1>
+                       <tr>
+                          <th> Profesional </th>
+                          <th> Hora </th>
+                          <th> Domingo </th>                           
+                          <th> Lunes </th>
+                          <th> Martes </th>
+                          <th> Miercoles </th>
+                          <th> Jueves </th>
+                          <th> Viernes </th>
+                          <th> Sabado </th>
+                        </tr>
+                    <% date=sunday %>
+                            <% while (date.hour != 18) || (date.minute != 30)
+                                professionals.each do |professional| %>
+                                <tr>
+                                        <td align="center"> <%= professional.name.gsub(""," ") %> </td>
+                                        <td align="center"> <%= date.strftime("%R") %> </td>
+                                        <td align="center"> <%= professional.data(date.strftime("%F_%R")) %> </td>
+                                        <td align="center"> <%= professional.data((date + 1).strftime("%F_%R")) %> </td>
+                                        <td align="center"> <%= professional.data((date + 2).strftime("%F_%R")) %> </td>
+                                        <td align="center"> <%= professional.data((date + 3).strftime("%F_%R")) %> </td>
+                                        <td align="center"> <%= professional.data((date + 4).strftime("%F_%R")) %> </td>
+                                    <td align="center"> <%= professional.data((date + 5).strftime("%F_%R")) %> </td>
+                                    <td align="center"> <%= professional.data((date + 6).strftime("%F_%R")) %></td>
+                            </tr>
+                            <%end
+                            date = date + (30/1440.0)
+                        end%> 
+                    </table>
+                    </body>
+                    </html>
+                ERB
+                erb = ERB.new(templete)
+                output = erb.result_with_hash(professionals: professionals, sunday: sunday)
+                File.write(Dir.home + '/week_appointments.html', output)
+            end
+
+            def self.sunday(date)
+                case DateTime.parse(date).strftime("%A")
+                    when "Sunday"
+                        DateTime.parse(date)
+                    when "Monday"
+                        (DateTime.parse(date)-1)
+                    when "Tuesday"
+                        (DateTime.parse(date)-2)
+                    when "Wednesday"
+                        (DateTime.parse(date)-3)
+                    when "Thursday"
+                        (DateTime.parse(date)-4)
+                    when "Friday"
+                        (DateTime.parse(date)-5)
+                    when "Saturday"
+                        (DateTime.parse(date)-6)
+                end
+            end
+
+            def self.professionalsWeek(professional, sunday)
+                if (professional.nil?)
+                    array=Professional.list
+                    array=array.map{|p| 
+                        if Professional.appointments_week?(p,sunday)
+                            Professional.new(p)
+                        end
+                    }.compact
+                elsif Professional.professional_exist?(professional)
+                    array=[Professional.new(professional)]
+                end
+            end
+
+            def data_of_patient
+                file= File.read(self.appointment_rute(@date, @professional)).split("\n")
+                "#{file[1]} #{file[0]}"
             end
         end
     end

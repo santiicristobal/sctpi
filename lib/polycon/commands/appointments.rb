@@ -22,7 +22,7 @@ module Polycon
           begin
             Polycon::Models::Appointment.validate_date(date)
             appointment= Polycon::Models::Appointment.new(date, professional) 
-            prof= Polycon::Models::Professional.new()
+            prof= Polycon::Models::Professional
             if prof.professional_exist?(professional) && !appointment.appointment_exist?(date, professional) && (DateTime.parse(date) > DateTime.now)
               appointment.create(name, surname, phone, notes)
               puts "Turno creado con exito"
@@ -53,7 +53,7 @@ module Polycon
           begin
             Polycon::Models::Appointment.validate_date(date)
             appointment= Polycon::Models::Appointment.new(date, professional) 
-            prof= Polycon::Models::Professional.new()
+            prof= Polycon::Models::Professional
             if prof.professional_exist?(professional) && appointment.appointment_exist?(date, professional)
               puts appointment.show()
             elsif !appointment.appointment_exist?(date, professional) && prof.professional_exist?(professional)
@@ -81,7 +81,7 @@ module Polycon
           begin 
             Polycon::Models::Appointment.validate_date(date)
             appointment= Polycon::Models::Appointment.new(date, professional) 
-            prof= Polycon::Models::Professional.new()
+            prof= Polycon::Models::Professional
             if prof.professional_exist?(professional) && appointment.appointment_exist?(date, professional)
               appointment.cancel
               puts "Turno eliminado con exito"
@@ -107,7 +107,7 @@ module Polycon
 
         def call(professional:)
           appointment= Polycon::Models::Appointment
-          prof= Polycon::Models::Professional.new()
+          prof= Polycon::Models::Professional
           if prof.professional_exist?(professional)
             appointment.cancelAll(professional)
             puts "Todos los turnos se eliminaron con exito"
@@ -130,7 +130,7 @@ module Polycon
 
         def call(professional:)
           appointment= Polycon::Models::Appointment
-          prof= Polycon::Models::Professional.new()
+          prof= Polycon::Models::Professional
           if prof.professional_exist?(professional) 
             puts appointment.list(professional)
           elsif
@@ -155,17 +155,21 @@ module Polycon
             Polycon::Models::Appointment.validate_date(old_date)
             Polycon::Models::Appointment.validate_date(new_date)
             appointment= Polycon::Models::Appointment
-            prof= Polycon::Models::Professional.new()
-            if prof.professional_exist?(professional) && appointment.appointment_exist?(old_date, professional) && (DateTime.parse(new_date) > DateTime.now)
-              appointment.reschedule(old_date, new_date, professional)
-              puts "Modificacion realizada con exito"
-            elsif DateTime.parse(new_date) <= DateTime.now
-              warn "La nueva fecha ingresada es vieja"
-            elsif prof.professional_exist?(professional) && !appointment.appointment_exist?(old_date, professional)
-              warn "No existe ese turno"
-            else
-              warn "No existe el profesional"
-            end
+            prof= Polycon::Models::Professional
+            if appointment.appointment_exist?(new_date, professional)
+              warn "Ya existe un turno en ese dia y horario"
+            else  
+              if prof.professional_exist?(professional) && appointment.appointment_exist?(old_date, professional) && (DateTime.parse(new_date) > DateTime.now)
+                appointment.reschedule(old_date, new_date, professional)
+                puts "Modificacion realizada con exito"
+              elsif DateTime.parse(new_date) <= DateTime.now
+                warn "La nueva fecha ingresada es vieja"
+              elsif prof.professional_exist?(professional) && !appointment.appointment_exist?(old_date, professional)
+                warn "No existe ese turno"
+              else
+                warn "No existe el profesional"
+              end
+            end  
           rescue
             warn "La fecha debe tener el formato AAAA-MM-DD_HH-II"  
           end
@@ -192,7 +196,7 @@ module Polycon
           begin
             Polycon::Models::Appointment.validate_date(date)
             appointment= Polycon::Models::Appointment.new(date, professional)
-            prof= Polycon::Models::Professional.new()
+            prof= Polycon::Models::Professional
             if prof.professional_exist?(professional) && appointment.appointment_exist?(date, professional)
               appointment.edit(**options)
               puts "Editado con exito"
@@ -206,24 +210,52 @@ module Polycon
           end
         end
       end
-      class Commandsgrilla < Dry::CLI::Command
+      class GrillaDiaria < Dry::CLI::Command
         argument :date, required: true, desc: 'Full date for the appointment'
         option :professional, required: false, desc: 'Full name of the professional'
 
         def call(date:, professional: nil)
-          appointment= Polycon::Models::Appointment
-          prof= Polycon::Models::Professional.new()
-          if !profesional.nil? 
-            if prof.professional_exist?(professional)
-              appointment.htmlday(date, professional)
+          begin 
+            appointment= Polycon::Models::Appointment
+            appointment.validate_date(date)
+            prof= Polycon::Models::Professional
+            if !professional.nil? 
+              if prof.professional_exist?(professional)
+                appointment.htmlday(date, professional)
+              else
+                warn "No existe ese profesional"
+              end
             else
-              warn "No existe ese profesional"
+              appointment.htmlday(date, professional)
             end
-          else
-            appointment.htmlday(date, professional)
+          rescue
+            warn "La fecha debe tener el formato AAAA-MM-DD_HH-II"
           end
         end
       end
-    end
+
+      class GrillaSemanal < Dry::CLI::Command
+        argument :date, required: true, desc: 'Full date for the appointment'
+        option :professional, required: false, desc: 'Full name of the professional'
+        def call(date:, professional: nil)
+          begin 
+            appointment= Polycon::Models::Appointment
+            appointment.validate_date(date)
+            prof= Polycon::Models::Professional
+            if !professional.nil? 
+              if prof.professional_exist?(professional)
+                appointment.htmlweek(DateTime.parse(date).strftime("%F_08:00"), professional)
+              else
+                warn "No existe ese profesional"
+              end
+            else
+              appointment.htmlweek(DateTime.parse(date).strftime("%F_08:00"), professional)
+            end
+          rescue
+            warn "La fecha debe tener el formato AAAA-MM-DD_HH-II"
+          end
+        end
+      end
+    end 
   end
 end

@@ -13,11 +13,11 @@ module Polycon
 
         def call(name:, **)
           if Polycon::Models::Professional.polycon_exist?
-            professional= Polycon::Models::Professional.new()
+            professional= Polycon::Models::Professional
             if professional.professional_exist?(name)
               warn "Este profesional ya existe"
             else
-              professional.create(name)
+              professional.new(name).create
               puts "Profesional creado"
             end
           else
@@ -39,9 +39,9 @@ module Polycon
         ]
 
         def call(name: nil)
-          professional= Polycon::Models::Professional.new()
+          professional= Polycon::Models::Professional
           if professional.professional_exist?(name)
-            professional.delete(name)
+            professional.new(name).delete
             puts "Profesional borrado"  
           else
             warn "Este profesional no existe"
@@ -57,7 +57,7 @@ module Polycon
         ]
 
         def call(*)
-          professional= Polycon::Models::Professional.new()
+          professional= Polycon::Models::Professional
           puts professional.list
         end
       end
@@ -73,7 +73,7 @@ module Polycon
         ]
 
         def call(old_name:, new_name:, **)
-          professional= Polycon::Models::Professional.new()
+          professional= Polycon::Models::Professional
           if professional.professional_exist?(old_name)
             professional.rename(old_name, new_name)
             puts "Profesional Editado"  
