@@ -1,4 +1,3 @@
-#require "./lib/polycon/helper/path"
 require "./lib/polycon/models/appointment"
 module Polycon
     module Models

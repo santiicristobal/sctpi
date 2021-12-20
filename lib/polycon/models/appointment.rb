@@ -1,4 +1,3 @@
-#require "./lib/polycon/helper/path"
 require "date"
 require "erb"
 require "./lib/polycon/models/professional"
